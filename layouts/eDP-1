@@ -1,0 +1,2 @@
+swaymsg output "eDP-1" background ~/.config/sway/background.png fill
+swaymsg exec "light -U 50"

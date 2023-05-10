@@ -1,0 +1,4 @@
+swaymsg workspace 9
+swaymsg split vertical
+swaymsg exec "firefox --url github.com/misthios"
+swaymsg exec "firefox --url duck.com"
