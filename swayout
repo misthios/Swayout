@@ -1,0 +1,78 @@
+#!/bin/sh
+
+#==================================================================================================
+#title           :swayout
+#description     :automate sway outputs
+#author          :Wesley van Tilburg
+#date            :10/05/2023
+#version         :0.1
+#==================================================================================================
+
+
+usage(){ printf "swayscout v0.1; 
+USAGE
+	swayscout  [args...]
+ARGS
+	-d enable debug logging
+  -l directory containing the layouts
+";
+exit 0
+}
+
+log(){ printf '\033[%sm%-0s \e[0m| %s\n' "${1:-33}" "$2" "$3";}
+
+debug(){ if [ "$DEBUG" ]; then log "37" "DEBUG" "$1";fi }
+info(){  log "34" "INFO" "$1";}
+err(){ log "06;31" "ERROR" "$1";exit 1;}
+
+run(){
+  #array with layout: '{[{adapter: name,serial: name}]}'
+  OUTPUTS="$(swaymsg -t get_outputs --raw | jq  'to_entries[] | {adapter: .value.name, serial: .value.serial}' | jq -s .)"
+  debug "outputs: $OUTPUTS"
+
+  outputam="$(echo "$OUTPUTS" | jq length )"
+  debug "number of outputs: $outputam"
+  index=0
+
+  #Serial matches are checked first due to higher priority
+  while [ "$index" -lt "$outputam" ]; 
+  do
+    output="$(echo $OUTPUTS | jq --argjson index "$index" '.[$index]')"
+    adapter="$(echo $output | jq -r '.adapter')"
+    serial="$(echo $output | jq -r '.serial')"
+    debug "output: $output"
+    debug "adapter: $adapter"
+    debug "serial: $serial"
+
+    sfile="$LAYOUTDIR/$serial"
+    afile="$LAYOUTDIR/$adapter"
+
+    if [ -f "$sfile" ]; then
+      debug "sourcing serialfile: $sfile"
+      . $sfile
+    elif [ -f "$afile" ]; then
+      debug "sourcing adapterfile: $afile"
+      . $afile
+    fi
+    index=$((index+1))
+  done
+}
+
+
+#handle input
+while getopts 'dl:' OPTION 2>/dev/null; do
+	case "$OPTION" in
+		d) DEBUG=true;;
+    l) LAYOUTDIR="$OPTARG";;
+		*) usage;;
+	esac
+done
+
+#validate arguments
+if [ -z "$LAYOUTDIR" ]; then err "-l  argument is missing"; fi
+
+#make sure its a directory
+if ! [ -d "$LAYOUTDIR" ]; then err "Input is not a valid directory"; fi
+
+run
+
