@@ -1,0 +1,9 @@
+#!/bin/sh
+
+#find the swaysocket and add it to the env
+export SWAYSOCK=$(find /tmp -name "*sway*")
+
+#actually run the script
+#replace both paths with the correct
+#script and layout folder paths
+/home/misthios/.config/sway/swayout -l /home/misthios/.config/sway/layout

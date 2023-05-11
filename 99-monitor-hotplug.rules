@@ -1,0 +1,1 @@
+KERNEL=="card1", SUBSYSTEM=="drm",RUN+="/usr/bin/at -f /home/misthios/udevhelper now"
