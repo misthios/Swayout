@@ -1,0 +1,12 @@
+#!/bin/sh
+data="$(swaymsg --raw -t get_workspaces | jq -r '.[] | select(.name==
+"9") .representation')"
+
+#representation == null means an empty workspace
+if [ "$data" = "null" ]; then
+ swaymsg workspace 9&
+ swaymsg split vertical&
+ swaymsg exec firefox&
+ swaymsg exec firefox&
+fi
+
